@@ -86,6 +86,8 @@ User.findOne({where: {username:req.body.username}})
 
 /*** GET PROFILE ***/
 exports.getUser = function(req, res) {
+  console.log("this is what i get");
+  console.log(req.user);
   User
     .findOne({where: { username: req.params.username }})
     .then(function(user) {
