@@ -1,0 +1,5 @@
+CREATE TABLE Song(name text, artist text, genre text, length integer, happy integer, sad integer, inspirational integer, romantic integer, party integer, chill integer, focus integer, workout integer, travel integer, intense integer);
+
+CREATE TABLE Playlist(name text, owner text, PRIMARY KEY(name, owner));
+
+CREATE TABLE PartOf(songname text, artistname text, playlistname text, playlistowner text, FOREIGN KEY (playlistname, playlistowner) REFERENCES Playlist(name, owner) ON DELETE CASCADE ON UPDATE CASCADE);

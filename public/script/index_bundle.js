@@ -12475,6 +12475,28 @@
 		defaults: {
 			name: '',
 			songs: []
+		},
+
+		// Delete yourself and, if you're part of a collection, make that
+		// collection refetch
+		deletePlaylist: function deletePlaylist() {
+			var self = this;
+			$.post('/delete/' + this.attributes.name).done(function () {
+				if (self.collection) {
+					self.collection.fetch({ reset: true });
+				}
+			});
+		},
+
+		// Change your name and, if you're part of a collection, make that
+		// collection refetch
+		editName: function editName(newName) {
+			var self = this;
+			$.post('/edit?old=' + this.attributes.name + '&new=' + newName).done(function () {
+				if (self.collection) {
+					self.collection.fetch({ reset: true });
+				}
+			});
 		}
 	});
 
@@ -25179,7 +25201,11 @@
 		},
 
 		save: function save() {
-			// TODO
+			var name = prompt('Enter a name for your playlist', 'My New Playlist');
+			this.model.set('name', name);
+			$.post('/save', { playlist: this.model.toJSON() }).then(function () {
+				window.location.href = '/profile';
+			});
 		},
 
 		className: 'generated-playlist',
@@ -25193,7 +25219,7 @@
 			this.$el.append($("<h3>Here's your new playlist:</h3>"));
 			this.playlistView.render();
 			this.$el.append(this.playlistView.$el);
-			this.$el.append($('<button class="btn btn-info">Try Again</button>'));
+			this.$el.append($('<a href="/"><button class="btn btn-info">Try Again</button></a>'));
 			this.$el.append($('<button class="btn btn-primary">Save it!</button>'));
 		}
 	});
@@ -25232,19 +25258,45 @@
 	// Pass in a Playlist model to create
 	var PlaylistView = _backbone2['default'].View.extend({
 		events: {
-			'click .panel-heading': 'collapse'
+			'click .panel-heading': 'collapse',
+			'click .delete': 'deletePlaylist',
+			'click .edit': 'editName'
+		},
+
+		initialize: function initialize(options) {
+			// When true, shows delete button
+			this.editable = options.editable;
 		},
 
 		collapse: function collapse() {
 			$(this.el).find('.panel-collapse').collapse('toggle');
 		},
 
+		deletePlaylist: function deletePlaylist(ev) {
+			ev.preventDefault();
+			ev.stopPropagation();
+			this.$el.fadeOut();
+			this.model.deletePlaylist();
+		},
+
+		editName: function editName(ev) {
+			ev.preventDefault();
+			ev.stopPropagation();
+
+			var newName = prompt('Enter a new name for this playlist', this.model.get('name'));
+			this.model.editName(newName);
+		},
+
 		render: function render() {
+			var tplData = this.model.toJSON();
+			tplData.editable = this.editable;
+
 			_handlebarsRuntime2['default'].registerHelper("inc", function (value, options) {
 				return parseInt(value) + 1;
 			});
+
 			this.$el.empty();
-			this.$el.append((0, _handlebarsPlaylistHandlebars2['default'])(this.model.toJSON()));
+			this.$el.append((0, _handlebarsPlaylistHandlebars2['default'])(tplData));
 		}
 	});
 
@@ -25257,6 +25309,8 @@
 
 	var Handlebars = __webpack_require__(10);
 	module.exports = (Handlebars["default"] || Handlebars).template({"1":function(container,depth0,helpers,partials,data) {
+	    return "		<div class=\"delete pull-right btn btn-danger\">Delete</div>\n		<div class=\"edit pull-right btn btn-warning\">Edit</div>\n";
+	},"3":function(container,depth0,helpers,partials,data) {
 	    var alias1=container.escapeExpression, alias2=container.lambda;
 
 	  return "						<tr>\n							<td>"
@@ -25267,12 +25321,15 @@
 	    + alias1(alias2((depth0 != null ? depth0.artist : depth0), depth0))
 	    + "</td>\n						</tr>\n";
 	},"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
-	    var stack1, helper, alias1=depth0 != null ? depth0 : {};
-
-	  return "<div class=\"panel panel-default\">\n	<div class=\"panel-heading\">"
-	    + container.escapeExpression(((helper = (helper = helpers.name || (depth0 != null ? depth0.name : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(alias1,{"name":"name","hash":{},"data":data}) : helper)))
-	    + "</div>\n	<div class=\"panel-collapse collapse in\">\n		<div class=\"panel-body\">\n			<table class=\"table table-hover \">\n				<thead>\n					<tr>\n				    <th>#</th>\n				    <th>Song</th>\n				    <th>Artist</th>\n			    	</tr>\n				</thead>\n				<tbody>\n"
-	    + ((stack1 = helpers.each.call(alias1,(depth0 != null ? depth0.songs : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    var stack1, helper, options, alias1=depth0 != null ? depth0 : {}, alias2=helpers.helperMissing, alias3="function", buffer = 
+	  "<div class=\"panel panel-default\">\n	<div class=\"panel-heading\">\n		"
+	    + container.escapeExpression(((helper = (helper = helpers.name || (depth0 != null ? depth0.name : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"name","hash":{},"data":data}) : helper)))
+	    + "\n";
+	  stack1 = ((helper = (helper = helpers.editable || (depth0 != null ? depth0.editable : depth0)) != null ? helper : alias2),(options={"name":"editable","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data}),(typeof helper === alias3 ? helper.call(alias1,options) : helper));
+	  if (!helpers.editable) { stack1 = helpers.blockHelperMissing.call(depth0,stack1,options)}
+	  if (stack1 != null) { buffer += stack1; }
+	  return buffer + "	</div>\n	<div class=\"panel-collapse collapse in\">\n		<div class=\"panel-body\">\n			<table class=\"table table-hover \">\n				<thead>\n					<tr>\n				    <th>#</th>\n				    <th>Song</th>\n				    <th>Artist</th>\n			    	</tr>\n				</thead>\n				<tbody>\n"
+	    + ((stack1 = helpers.each.call(alias1,(depth0 != null ? depth0.songs : depth0),{"name":"each","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
 	    + "				</tbody>\n			</table> \n		</div>\n	</div>\n</div>\n";
 	},"useData":true});
 

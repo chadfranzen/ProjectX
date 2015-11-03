@@ -1,5 +1,11 @@
 <div class="panel panel-default">
-	<div class="panel-heading">{{name}}</div>
+	<div class="panel-heading">
+		{{name}}
+		{{#editable}}
+		<div class="delete pull-right btn btn-danger">Delete</div>
+		<div class="edit pull-right btn btn-warning">Edit</div>
+		{{/editable}}
+	</div>
 	<div class="panel-collapse collapse in">
 		<div class="panel-body">
 			<table class="table table-hover ">

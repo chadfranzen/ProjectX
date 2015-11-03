@@ -86,8 +86,10 @@ User.findOne({where: {username:req.body.username}})
 
 /*** GET PROFILE ***/
 exports.getUser = function(req, res) {
-  console.log("this is what i get");
-  console.log(req.user);
+  // If no username is specified, go to the logged in user's profile
+  if (!req.params.username) {
+    req.params.username = req.user.username;
+  }
   User
     .findOne({where: { username: req.params.username }})
     .then(function(user) {

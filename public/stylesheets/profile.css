@@ -26,3 +26,14 @@ html, body {
 #playlists .panel-heading:hover {
 	text-shadow: 0 0 1px #FFFFFF;
 }
+
+.delete {
+	margin-top: -10px;
+	margin-right: -15px;
+	height: 42px;
+}
+
+.edit {
+	margin-top: -10px;
+	height: 42px;
+}

@@ -8,7 +8,10 @@ var GeneratedPlaylistView = Backbone.View.extend({
 	},
 
 	save: function() {
-		// TODO
+		var name = prompt('Enter a name for your playlist', 'My New Playlist');
+		this.model.set('name', name);
+		$.post('/save', {playlist: this.model.toJSON()})
+		 .then(() => {window.location.href = '/profile'});
 	},
 	
 	className: 'generated-playlist',
@@ -22,7 +25,7 @@ var GeneratedPlaylistView = Backbone.View.extend({
 		this.$el.append($("<h3>Here's your new playlist:</h3>"));
 		this.playlistView.render();
 		this.$el.append(this.playlistView.$el);
-		this.$el.append($('<button class="btn btn-info">Try Again</button>'));
+		this.$el.append($('<a href="/"><button class="btn btn-info">Try Again</button></a>'));
 		this.$el.append($('<button class="btn btn-primary">Save it!</button>'));
 	}
 });
