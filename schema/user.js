@@ -15,8 +15,34 @@ sequelize
 var User = sequelize.define('user', {
   username: Sequelize.STRING,
   password: Sequelize.STRING,
-}, {timestamps: false});
+  following: Sequelize.INTEGER,
+  followers: Sequelize.INTEGER
+}, 
+{timestamps: false,
+instanceMethods: 
+	{
+	comparePassword: function(candidatePassword, cb){
+		console.log("candidate pass:"+candidatePassword);
+		console.log("other pass:"+this.password);
+		bcrypt.compare(candidatePassword, this.password, cb);
+		}
+	}
+}
+);
 
+User.beforeCreate(function(user, options,cb){
+  	if (!user.changed('password'))
+        return cb();
+  	bcrypt.genSalt(10, function(err, salt) {
+    	if (err) return cb(err);
+    	bcrypt.hash(user.password, salt, null, function(err, hash) {
+      		if (err) return next(err);
+      		console.log(hash);
+      		user.password = hash;
+      		return cb(null, options);
+      	});
+    });
+});
 
 sequelize.sync();
 module.exports=User;

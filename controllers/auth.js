@@ -21,15 +21,15 @@ exports.getLogin = function(request, response) {
  */
 exports.postLogin = function(req, res, next) {
 
-
   passport.authenticate('local', function(err, user, info) {
     if (err) return next(err);
     if (!user) {
-      req.flash('errors', { msg: info.message });
+      console.log(req.password);
       console.log("invalid");
       return res.redirect('/login');
     }
     req.logIn(user, function(err) {
+      console.log("logging in");
       if (err) return next(err);
       req.flash('success', { msg: 'Success! You are logged in.' });
       res.redirect(req.session.returnTo || '/');
@@ -73,6 +73,8 @@ User.findOne({where: {username:req.body.username}})
           var t_user = User.create({
             username: req.body.username,
             password: req.body.password,
+            followers: 0,
+            following: 0
         }).then(function(){
             req.logIn(t_user,function(err){
             if (err) return next(err);
@@ -99,7 +101,27 @@ exports.getUser = function(req, res) {
         return res.redirect('/');
       }
       else{
-          res.render('pages/profile', { username: user.username, index: false, profile: true});
+          res.render('pages/profile', { username: user.username, followers: user.followers, following: user.following, index: false, profile: true});
+        }
+    });
+};
+
+exports.addFollower = function(req,res){
+  if(!req.params.username){
+    req.params.username = require.user.username;
+  }
+  User
+    .findOne({where: { username: req.params.username }})
+    .then(function(user) {
+      // Check to see if a user with the specified username exists
+      if (!user) {
+        req.flash('errors', { msg: 'User with that username does not exist.' });
+        return res.redirect('/');
+      }
+      else{
+        console.log("maybe im here");
+          req.params.followers +=1;
+            res.render('pages/profile', { username: user.username, followers: user.followers, following: user.following, index: false, profile: true});
         }
     });
 };

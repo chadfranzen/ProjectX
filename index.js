@@ -82,6 +82,10 @@ app.post('/delete/:playlistname', db.deletePlaylist);
 // ?old=< >&new=< >
 app.post('/edit', db.editPlaylistName);
 
+/** FOLLOWING **/
+//app.post('/profile/:username', auth.addFollower);
+
+/*****/
 app.listen(app.get('port'), function() {
   console.log('Node app is running on port', app.get('port'));
 });

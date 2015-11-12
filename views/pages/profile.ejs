@@ -14,16 +14,17 @@
 	<div class="user-info panel panel-info">
 	  <div class="panel-heading">
 	    <h3 class="panel-title"><%= username %></h3>
+	    <button onclick="auth.addFollower" method="POST"> Follow </button>
 	  </div>
 	  <div class="panel-body">
 	    <ul class="list-group">
-	    	<li class="list-group-item"><span class="badge"><strong>140</strong></span> Followers</li>
+	    	<li class="list-group-item"><span class="badge"><strong><%= followers %></strong></span> Followers</li>
 	    	<li class="list-group-item"><span class="badge"><strong>4</strong></span> Playlists</li>
 	    	<li class="list-group-item divider"></li>
 	    	<li class="list-group-item divider">Following</li>
-	    	<li class="list-group-item divider text-info">makkar2</li>
-	    	<li class="list-group-item divider text-info">sbhadur2</li>
-	    	<li class="list-group-item divider text-info">okenla2</li>
+	    	<li class="list-group-item divider text-info"><%= following %></li>
+	    	<li class="list-group-item divider text-info"></li>
+	    	<li class="list-group-item divider text-info"></li>
 	    </ul>
 	  </div>
 	</div>
