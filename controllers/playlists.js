@@ -1,6 +1,8 @@
 var pg = require('pg');
 var _ = require('lodash');
 var conString = process.env.DATABASE_URL || "postgres://aashna956:Charu@956@localhost:5432/projectx";
+var async = require('async');
+
 exports.createTable=function(req,res){
 	var client = new pg.Client(conString);
 	client.connect();
@@ -97,7 +99,6 @@ exports.save=function(req, res){
 			// It really works I promise
 			return "('" + [song.name, song.artist, playlistName, username].join("', '") + "')";
 		}).join(", ");
-
 		client.query("INSERT INTO Playlist VALUES ($1, $2)", [playlistName, username]);
 		client.query("INSERT INTO PartOf VALUES " + values, function(err) {
 			client.end();
@@ -131,7 +132,6 @@ exports.fetch=function(req, res){
 			res.sendStatus(400);
 			return;
 		}
-
 		_.each(result.rows, function(playlist) {
 			playlistNames.push(playlist.name);
 		});
@@ -207,4 +207,118 @@ exports.editPlaylistName=function(req, res){
 		client.end();
 	});
 
+};
+exports.getSimilarPlaylists = function(req,res){
+
+		var client = new pg.Client(conString);
+		var playlist_name = req.params.playlistname,
+		playlistNames = [],
+		playlists = [],
+		similar_playlists=[],
+		curr_sums=[],
+		other_sums=[],
+		i=0,
+		moods =  ["happy","sad"];	
+		client.connect();
+		async.series([
+		function(callback){
+			client.query("SELECT name FROM playlist WHERE name='"+playlist_name+"'", function(err,result){
+				if(result.rowCount==0) {
+					console.log("no such playlist");
+					res.sendStatus(400);
+					client.end();
+					return;
+				}
+			});
+			var curr_playlist = {name: req.params.playlistname};
+			client.query("SELECT Playlist.name AS playlistname, songname AS name, artistname AS artist FROM Playlist, PartOf WHERE Playlist.name = $1 AND Playlist.owner=PartOf.playlistowner AND Playlist.name=PartOf.playlistname", [playlist_name], function(err, result) {
+				if (err) {
+				client.end();
+				return;
+				}
+				curr_playlist.songs = _.where(result.rows, {playlistname: playlist_name});
+				callback();
+			});
+		},
+		function(callback){
+			client.query("SELECT Playlist.name AS playlistname FROM Playlist WHERE Playlist.name <> $1", [playlist_name], function(err, result) {
+				if (err) {
+				client.end();
+				return;
+				}
+				_.each(result.rows, function(item){
+					playlistNames.push(item.playlistname);
+				});
+				callback();
+			});
+		},
+		function(callback){
+			client.query("SELECT Playlist.name AS playlistname, songname AS name, artistname AS artist FROM Playlist, PartOf WHERE Playlist.name <> $1 AND Playlist.owner=PartOf.playlistowner AND Playlist.name=PartOf.playlistname", [playlist_name], function(err, result) {
+					if (err) {
+						client.end();
+						return;
+					}
+					_.each(playlistNames, function(name) {
+						var playlist = {name: name};
+						playlist.songs = _.where(result.rows, {playlistname: name});
+						playlists.push(playlist);
+					});
+				callback();				
+			});
+		},
+		function(callback){
+			async.forEach(moods, function(mood,callback){
+				client.query("SELECT SUM("+mood+") FROM song, partof where song.name=partof.songname and partof.playlistname = $1",[playlist_name], function(err,result){
+					if (err) {							
+						client.end();
+						return;
+					}					
+					curr_sums[mood]=result.rows[0].sum;
+					callback();
+				});
+			}, function(err){
+				if(err) return next(err);
+				callback();
+			});
+		},
+
+		function(callback){
+			var dosomething1 = function(item){
+			async.each(moods,function(mood){
+			client.query("SELECT SUM("+mood+") FROM song, partof where song.name=partof.songname and partof.playlistname = $1",[item.name], function(err,result){
+				if (err) {							
+				client.end();
+				return;
+				}
+				other_sums[mood]=result.rows[0].sum;
+				var diff = curr_sums[mood]-other_sums[mood];
+				if(diff<0) diff = diff*(-1);
+				var total = curr_sums[mood]+other_sums[mood];
+				if((diff/total)>0.006) {
+					return;
+				}
+				if(mood=="sad"){
+					//console.log(diff);
+					//console.log(total);
+					//console.log(diff/total);
+					similar_playlists.push(item);
+					console.log("push item"+i+ "for mood"+mood);
+					i++;
+				}
+				if(i==3) {
+					res.json(similar_playlists);
+					client.end();
+				}
+			});
+			}, function(err){
+				if(err) return;
+			});
+		};
+		async.each(playlists, dosomething1, function(err){
+			if(err) return;
+			callback();
+		});
+	}], function(err){
+		if(err) return next(err);
+	});
 };

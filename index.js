@@ -78,6 +78,7 @@ app.get('/playlists', db.fetch);
 app.post('/save', db.save);
 
 app.post('/delete/:playlistname', db.deletePlaylist);
+app.get('/playlists/:playlistname', db.getSimilarPlaylists);
 
 // ?old=< >&new=< >
 app.post('/edit', db.editPlaylistName);
