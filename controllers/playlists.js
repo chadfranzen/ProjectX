@@ -253,12 +253,13 @@ exports.getSimilarPlaylists = function(req,res){
 				_.each(result.rows, function(item){	
 					playlistNames.push(item.playlistname);
 				});
+				playlistNames = _.shuffle(playlistNames);
 				callback();
 			});
 		},
 		/* get the songs for each playlist in playlistNames[], and then store in playlists[] */
 		function(callback){
-			client.query("SELECT Playlist.name AS playlistname, songname AS name, artistname AS artist FROM Playlist, PartOf WHERE Playlist.name <> $1 AND Playlist.owner=PartOf.playlistowner AND Playlist.name=PartOf.playlistname", [playlist_name], function(err, result) {
+			client.query("SELECT Playlist.name AS playlistname, Playlist.owner, songname AS name, artistname AS artist FROM Playlist, PartOf WHERE Playlist.name <> $1 AND Playlist.owner=PartOf.playlistowner AND Playlist.name=PartOf.playlistname", [playlist_name], function(err, result) {
 					if (err) {
 						client.end();
 						return;
@@ -274,7 +275,7 @@ exports.getSimilarPlaylists = function(req,res){
 		/* sum up the scores for each song in the playlist. curr_sums will look like ["happy": 375, "sad": 80]*/
 		function(callback){
 			async.forEach(moods, function(mood,callback){
-				client.query("SELECT SUM("+mood+") FROM song, partof where song.name=partof.songname and partof.playlistname = $1",[playlist_name], function(err,result){
+				client.query("SELECT SUM("+mood+")/COUNT("+mood+") FROM song, partof where song.name=partof.songname and partof.playlistname = $1",[playlist_name], function(err,result){
 					if (err) {							
 						client.end();
 						return;
@@ -294,7 +295,7 @@ exports.getSimilarPlaylists = function(req,res){
 			/* so item is a playlist in playlists[]*/
 			async.each(moods,function(mood){
 			/* for every mood in moods[] we find the sum of the scores of the songs in "item" */
-			client.query("SELECT SUM("+mood+") FROM song, partof where song.name=partof.songname and partof.playlistname = $1",[item.name], function(err,result){
+			client.query("SELECT SUM("+mood+")/COUNT("+mood+") FROM song, partof where song.name=partof.songname and partof.playlistname = $1",[item.name], function(err,result){
 				if (err) {							
 				client.end();
 				return;
@@ -304,19 +305,18 @@ exports.getSimilarPlaylists = function(req,res){
 				var diff = curr_sums[mood]-other_sums[mood];
 				if(diff<0) diff = diff*(-1);
 				/* and the total */
-				var total = curr_sums[mood]+other_sums[mood];
-				if((diff/total)>0.006) { // 0.006 is a random threshold value, might have to change it later 
-					// if it's greater, then the playlists differ too much and we return
-					return;
-				}
 				if(mood=="sad"){
 					// else if it's less, and we've reached the last mood in moods[] ie "sad" for now
 					// then the playlists are similar
-					similar_playlists.push(item);
-					console.log("push item"+i+ "for mood"+mood);
-					i++;
+					item.score = diff;
+					if (diff < 25) {
+						similar_playlists.push(item);
+						console.log("push item"+i+ "for mood"+mood);
+						i++;
+					}
 				}
 				if(i==3) {		// if we've found 3 similar playlists we render them as json to the response
+					similar_playlists = _.sortBy(similar_playlists, 'score');
 					res.json(similar_playlists);
 					client.end();
 					// the reason i did this is because client.end() needs to be inside this function, and i couldn't
