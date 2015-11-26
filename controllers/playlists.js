@@ -279,7 +279,7 @@ exports.getSimilarPlaylists = function(req,res){
 						client.end();
 						return;
 					}					
-					curr_sums[mood]=result.rows[0].sum; // curr_sums refers to the songs in curr_playlist
+					curr_sums[mood]=result.rows[0].sum; /* curr_sums refers to the sum of scores of songs in curr_playlist */
 					callback();
 				});
 			}, function(err){
