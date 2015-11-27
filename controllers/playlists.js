@@ -215,6 +215,7 @@ exports.getSimilarPlaylists = function(req,res){
 		similar_playlists=[],
 		curr_sums=[],
 		other_sums=[],
+		diffs=[],
 		i=0,
 		moods =  ["happy","sad"];	
 		client.connect();
@@ -302,16 +303,18 @@ exports.getSimilarPlaylists = function(req,res){
 				/* now find the difference in the scores of this playlist and "curr_playlist" */
 				var diff = curr_sums[mood]-other_sums[mood];
 				if(diff<0) diff = diff*(-1);
+				diffs.push(diff);
 				/* and the total */
 				if(mood=="sad"){
 					// else if it's less, and we've reached the last mood in moods[] ie "sad" for now
 					// then the playlists are similar
-					item.score = diff;
-					if (diff < 25) {
+					item.score = _.reduce(diffs, function(memo, num){ return memo + num; }, 0);
+					if (item.score < 25) {
 						similar_playlists.push(item);
 						console.log("push item"+i+ "for mood"+mood);
 						i++;
 					}
+					diffs = [];
 				}
 				if(i==3) {		// if we've found 3 similar playlists we render them as json to the response
 					similar_playlists = _.sortBy(similar_playlists, 'score');
