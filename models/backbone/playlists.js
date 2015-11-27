@@ -3,7 +3,9 @@ import Playlist from './playlist.js';
 
 var Playlists = Backbone.Collection.extend({
 	model: Playlist,
-	url: '/playlists'
+	initialize: function(options) {
+		this.url = options.url;
+	}
 });
 
 export default Playlists;

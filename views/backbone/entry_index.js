@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import Playlist from '../../models/backbone/playlist.js'
+import Playlist from '../../models/backbone/playlist.js';
 import GeneratedPlaylistView from './generated_playlist.js';
 
 $(document).ready(() => {

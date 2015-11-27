@@ -29,7 +29,9 @@
     "pg": "^4.4.2",
     "pg-hstore": "^2.3.2",
     "pg-native": "^1.9.0",
-    "sequelize": "^3.12.1"
+    "sequelize": "^3.12.1",
+    "seedrandom": "2.4.2",
+    "rainbowvis.js": "1.0.1"
   },
   "engines": {
     "node": "0.12.7"

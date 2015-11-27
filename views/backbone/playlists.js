@@ -25,7 +25,6 @@ var PlaylistsView = Backbone.View.extend({
 		});
 	},
 
-	// This thing is memory leaky and gross right now but whatever
 	render: function() {
 		var $container = $('#playlists');
 		$container.empty();

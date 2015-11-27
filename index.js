@@ -87,6 +87,11 @@ app.post('/edit', db.editPlaylistName);
 //app.post('/profile/:username', auth.addFollower);
 
 /*****/
+
+app.get('/graph/:playlistname', function(request, response) {
+  response.render('pages/graph');
+});
+
 app.listen(app.get('port'), function() {
   console.log('Node app is running on port', app.get('port'));
 });

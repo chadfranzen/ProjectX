@@ -38,6 +38,7 @@ var PlaylistView = Backbone.View.extend({
 	render: function() {
 		var tplData = this.model.toJSON();
 		tplData.editable = this.editable;
+		tplData.encodedName = encodeURI(tplData.name);
 
 		Handlebars.registerHelper("inc", function(value, options)
 		{

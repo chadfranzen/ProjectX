@@ -113,8 +113,8 @@ exports.save=function(req, res){
 };
 
 exports.fetch=function(req, res){
-	var client = new pg.Client(conString); if(!req.user) {res.sendStatus(400); return;}
-	var	username = req.user.username,
+	var client = new pg.Client(conString),
+		username = req.query.username || req.user.username,
 		playlistNames = [],
 		playlists = [];
 
@@ -149,8 +149,6 @@ exports.fetch=function(req, res){
 			_.each(playlistNames, function(playlistname) {
 				var playlist = {name: playlistname};
 
-				// TODO: make it so that songs don't have a 'playlistname' attribute on them;
-				// it doesn't break anything but it's useless to front end
 				playlist.songs = _.where(result.rows, {playlistname: playlistname})
 				playlists.push(playlist);
 			});
@@ -275,7 +273,7 @@ exports.getSimilarPlaylists = function(req,res){
 		/* sum up the scores for each song in the playlist. curr_sums will look like ["happy": 375, "sad": 80]*/
 		function(callback){
 			async.forEach(moods, function(mood,callback){
-				client.query("SELECT SUM("+mood+")/COUNT("+mood+") FROM song, partof where song.name=partof.songname and partof.playlistname = $1",[playlist_name], function(err,result){
+				client.query("SELECT SUM("+mood+")/COUNT("+mood+") as sum FROM song, partof where song.name=partof.songname and partof.playlistname = $1",[playlist_name], function(err,result){
 					if (err) {							
 						client.end();
 						return;
@@ -295,7 +293,7 @@ exports.getSimilarPlaylists = function(req,res){
 			/* so item is a playlist in playlists[]*/
 			async.each(moods,function(mood){
 			/* for every mood in moods[] we find the sum of the scores of the songs in "item" */
-			client.query("SELECT SUM("+mood+")/COUNT("+mood+") FROM song, partof where song.name=partof.songname and partof.playlistname = $1",[item.name], function(err,result){
+			client.query("SELECT SUM("+mood+")/COUNT("+mood+") as sum FROM song, partof where song.name=partof.songname and partof.playlistname = $1",[item.name], function(err,result){
 				if (err) {							
 				client.end();
 				return;
