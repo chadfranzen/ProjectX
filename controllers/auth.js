@@ -103,7 +103,7 @@ exports.getUser = function(req, res) {
         return res.redirect('/');
       }
       else{
-          res.render('pages/profile', { username: user.username, followers: user.followers, following: user.following, index: false, profile: true});
+          res.render('pages/profile', { currentuser: req.user.username, username: user.username, followers: user.followers, following: user.following, index: false, profile: true});
         }
     });
 };
@@ -150,7 +150,7 @@ exports.addFollower = function(req,res){
                     res.sendStatus(400);
                   }
                   else{
-                  res.render('pages/profile', { username: user.username, followers: user.followers, following: user.following, index: false, profile: true});
+                  res.render('pages/profile', { currentuser: req.user.username, username: user.username, followers: user.followers, following: user.following, index: false, profile: true});
                    client.end();
                  }
                 });  
@@ -170,7 +170,7 @@ exports.getFollowers = function(req,res){
   }
   else{
   User
-    .findOne({where: { username: req.user.username }})
+    .findOne({where: { username: req.params.username }})
     .then(function(user) {
       // Check to see if a user with the specified username exists
       if (!user) {
@@ -198,8 +198,11 @@ exports.getFollowees = function(req,res){
     res.redirect('/');
   }
   else{
+  if (!req.params.username) {
+    req.params.username = req.user.username;
+  }
   User
-    .findOne({where: { username: req.user.username }})
+    .findOne({where: { username: req.params.username }})
     .then(function(user) {
       // Check to see if a user with the specified username exists
       if (!user) {

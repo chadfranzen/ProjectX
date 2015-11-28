@@ -56,11 +56,39 @@
 
 	var _playlistsJs2 = _interopRequireDefault(_playlistsJs);
 
+	var _lodash = __webpack_require__(7);
+
+	var _lodash2 = _interopRequireDefault(_lodash);
+
 	$(document).ready(function () {
-		var playlists = new _modelsBackbonePlaylistsJs2['default']();
+		var username = $('#username').text().trim(),
+		    currentuser = $('#currentuser').text().trim(),
+		    url;
+		if (!username) {
+			url = '/playlists';
+		} else {
+			url = '/playlists?username=' + encodeURI(username);
+		}
+		var playlists = new _modelsBackbonePlaylistsJs2['default']({ url: url });
 
 		// PlaylistsView will render itself in the right spot when it's ready
 		var playlistsView = new _playlistsJs2['default']({ collection: playlists });
+
+		$.get('/following/' + encodeURI(username)).done(function (following) {
+			_lodash2['default'].each(following, function (followedUser) {
+				$('#user-info').append($('<li class="list-group-item divider text-info"><a href="/profile/' + encodeURI(followedUser.followee) + '">' + followedUser.followee + '</a></li>'));
+			});
+		});
+
+		$.get('/following/' + encodeURI(currentuser)).done(function (following) {
+			if (_lodash2['default'].isEmpty(_lodash2['default'].where(following, { followee: username })) && currentuser !== username) {
+				$('#username').append($('<div class="follow pull-right btn btn-warning">Follow</div>'));
+				$('.follow').click(function () {
+					$('.follow').hide();
+					$.get('/follow/' + encodeURI(username));
+				});
+			}
+		});
 	});
 
 /***/ },
@@ -12846,6 +12874,7 @@
 		render: function render() {
 			var tplData = this.model.toJSON();
 			tplData.editable = this.editable;
+			tplData.encodedName = encodeURI(tplData.name);
 
 			_handlebarsRuntime2['default'].registerHelper("inc", function (value, options) {
 				return parseInt(value) + 1;
@@ -25239,7 +25268,11 @@
 
 	var Handlebars = __webpack_require__(10);
 	module.exports = (Handlebars["default"] || Handlebars).template({"1":function(container,depth0,helpers,partials,data) {
-	    return "		<div class=\"delete pull-right btn btn-danger\">Delete</div>\n		<div class=\"edit pull-right btn btn-warning\">Edit</div>\n";
+	    var helper;
+
+	  return "		<div class=\"delete pull-right btn btn-danger\">Delete</div>\n		<div class=\"edit pull-right btn btn-warning\">Edit</div>\n		<a href=\"../graph/"
+	    + container.escapeExpression(((helper = (helper = helpers.encodedName || (depth0 != null ? depth0.encodedName : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : {},{"name":"encodedName","hash":{},"data":data}) : helper)))
+	    + "\" class=\"find-similar pull-right btn btn-primary\">Find Similar</a>\n";
 	},"3":function(container,depth0,helpers,partials,data) {
 	    var alias1=container.escapeExpression, alias2=container.lambda;
 
@@ -26495,7 +26528,9 @@
 
 	var Playlists = _backbone2['default'].Collection.extend({
 		model: _playlistJs2['default'],
-		url: '/playlists'
+		initialize: function initialize(options) {
+			this.url = options.url;
+		}
 	});
 
 	exports['default'] = Playlists;
@@ -26552,7 +26587,6 @@
 			});
 		},
 
-		// This thing is memory leaky and gross right now but whatever
 		render: function render() {
 			var $container = $('#playlists');
 			$container.empty();

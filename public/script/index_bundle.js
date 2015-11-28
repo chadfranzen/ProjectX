@@ -64,10 +64,15 @@
 		$('#playlist-form').submit(function (ev) {
 			ev.preventDefault();
 
+			var translate = {
+				"good for focusing": "focus",
+				"good for workouts": "workout",
+				"good for parties": "party"
+			};
 			$('.well').fadeOut(500, function () {
 				var request = {};
 				_lodash2['default'].each($('#playlist-form').serializeArray(), function (input) {
-					request[input.name] = input.value;
+					request[input.name] = translate[input.value] || input.value;
 				});
 
 				$.get('/generate', request).done(function (playlistData) {
@@ -12864,6 +12869,7 @@
 		render: function render() {
 			var tplData = this.model.toJSON();
 			tplData.editable = this.editable;
+			tplData.encodedName = encodeURI(tplData.name);
 
 			_handlebarsRuntime2['default'].registerHelper("inc", function (value, options) {
 				return parseInt(value) + 1;
@@ -25257,7 +25263,11 @@
 
 	var Handlebars = __webpack_require__(10);
 	module.exports = (Handlebars["default"] || Handlebars).template({"1":function(container,depth0,helpers,partials,data) {
-	    return "		<div class=\"delete pull-right btn btn-danger\">Delete</div>\n		<div class=\"edit pull-right btn btn-warning\">Edit</div>\n";
+	    var helper;
+
+	  return "		<div class=\"delete pull-right btn btn-danger\">Delete</div>\n		<div class=\"edit pull-right btn btn-warning\">Edit</div>\n		<a href=\"../graph/"
+	    + container.escapeExpression(((helper = (helper = helpers.encodedName || (depth0 != null ? depth0.encodedName : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : {},{"name":"encodedName","hash":{},"data":data}) : helper)))
+	    + "\" class=\"find-similar pull-right btn btn-primary\">Find Similar</a>\n";
 	},"3":function(container,depth0,helpers,partials,data) {
 	    var alias1=container.escapeExpression, alias2=container.lambda;
 

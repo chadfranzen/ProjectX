@@ -84,8 +84,9 @@ app.post('/edit', db.editPlaylistName);
 
 /** FOLLOWING **/
 app.get('/follow/:username', auth.addFollower);
-app.get('/followers', auth.getFollowers);
+app.get('/followers/:username', auth.getFollowers);
 app.get('/following', auth.getFollowees);
+app.get('/following/:username', auth.getFollowees);
 /*****/
 
 app.get('/graph/:playlistname', function(request, response) {

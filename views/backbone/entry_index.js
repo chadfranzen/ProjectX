@@ -6,13 +6,17 @@ $(document).ready(() => {
 	$('#playlist-form').submit((ev) => {
 		ev.preventDefault();
 
-
+		var translate = {
+			"good for focusing": "focus",
+			"good for workouts": "workout",
+			"good for parties": "party"
+		};
 		$('.well').fadeOut(500, () => {
 			var request = {};
 			_.each($('#playlist-form').serializeArray(), (input) => {
-				request[input.name] = input.value;
+				request[input.name] = translate[input.value] || input.value;
 			});
-			
+
 			$.get('/generate', request).done((playlistData) => {
 				var playlist = new Playlist(playlistData),
 					playlistView = new GeneratedPlaylistView({model: playlist});
