@@ -5,6 +5,8 @@ var crypto = require('crypto');
 var passport = require('passport');
 var User = require('../schema/user.js');
 var Sequelize = require('sequelize');
+var pg = require('pg');
+var conString = process.env.DATABASE_URL || "postgres://aashna956:Charu@956@localhost:5432/projectx";
 /*
  * GET /login
  * Login page.
@@ -107,9 +109,13 @@ exports.getUser = function(req, res) {
 };
 
 exports.addFollower = function(req,res){
-  if(!req.params.username){
-    req.params.username = require.user.username;
+  if(!req.params.username){ //no username specified 
+    res.redirect("/");
   }
+  if(!req.user){    // not logged in
+    res.redirect('/');
+  }
+  else{
   User
     .findOne({where: { username: req.params.username }})
     .then(function(user) {
@@ -119,9 +125,99 @@ exports.addFollower = function(req,res){
         return res.redirect('/');
       }
       else{
-        console.log("maybe im here");
-          req.params.followers +=1;
-            res.render('pages/profile', { username: user.username, followers: user.followers, following: user.following, index: false, profile: true});
+        var client = new pg.Client(conString);
+        client.connect();
+          client.query("select * from follows where follower=$1 and followee=$2",[req.user.username, req.params.username], function(err,result){
+              if(result.rowCount==0){
+                client.query("INSERT INTO follows VALUES ($1,$2) ", [req.user.username, req.params.username], function(err){
+                  if (err) {
+                    console.log(err);
+                    client.end();
+                    res.sendStatus(400);
+                  } 
+                });
+                client.query("UPDATE users SET followers=followers+1 WHERE username=$1", [req.params.username], function(err) {
+                  if (err) {
+                    console.log(err);
+                    client.end();
+                    res.sendStatus(400);
+                  } 
+                });
+                client.query("UPDATE users SET following=following+1 WHERE username=$1", [req.user.username], function(err) {
+                  if (err) {
+                    console.log(err);
+                    client.end();
+                    res.sendStatus(400);
+                  }
+                  else{
+                  res.render('pages/profile', { username: user.username, followers: user.followers, following: user.following, index: false, profile: true});
+                   client.end();
+                 }
+                });  
+              }
+              else {
+                res.redirect('/profile/'+req.params.username);
+              }
+            });
         }
     });
+  }
+};
+exports.getFollowers = function(req,res){
+
+  if(!req.user){    // not logged in
+    res.redirect('/');
+  }
+  else{
+  User
+    .findOne({where: { username: req.user.username }})
+    .then(function(user) {
+      // Check to see if a user with the specified username exists
+      if (!user) {
+        req.flash('errors', { msg: 'User with that username does not exist.' });
+        return res.redirect('/');
+      }
+      else{
+        var client = new pg.Client(conString);
+        client.connect();
+          client.query("select follower from follows where followee=$1",[user.username], function(err,result){
+              if(err){
+                client.end();
+                res.sendStatus(400);
+              }
+              res.json(result.rows);
+              client.end();
+            });
+        }
+    });
+  }
+};
+exports.getFollowees = function(req,res){
+
+  if(!req.user){    // not logged in
+    res.redirect('/');
+  }
+  else{
+  User
+    .findOne({where: { username: req.user.username }})
+    .then(function(user) {
+      // Check to see if a user with the specified username exists
+      if (!user) {
+        req.flash('errors', { msg: 'User with that username does not exist.' });
+        return res.redirect('/');
+      }
+      else{
+        var client = new pg.Client(conString);
+        client.connect();
+          client.query("select followee from follows where follower=$1",[user.username], function(err,result){
+              if(err){
+                client.end();
+                res.sendStatus(400);
+              }
+              res.json(result.rows);
+              client.end();
+            });
+        }
+    });
+  }
 };

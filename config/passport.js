@@ -21,7 +21,7 @@ passport.use(new LocalStrategy(
   function(username, password, done) {
     User.find({ where: { username: username }}).then(function(user) {
       if (!user) {
-        console("user not found");
+        console.log("user not found");
         return done(null, false);
       } 
       console.log(this);

@@ -80,12 +80,12 @@ app.post('/save', db.save);
 app.post('/delete/:playlistname', db.deletePlaylist);
 app.get('/playlists/:playlistname', db.getSimilarPlaylists);
 
-// ?old=< >&new=< >
 app.post('/edit', db.editPlaylistName);
 
 /** FOLLOWING **/
-//app.post('/profile/:username', auth.addFollower);
-
+app.get('/follow/:username', auth.addFollower);
+app.get('/followers', auth.getFollowers);
+app.get('/following', auth.getFollowees);
 /*****/
 
 app.get('/graph/:playlistname', function(request, response) {
