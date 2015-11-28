@@ -53,3 +53,11 @@ html, body {
 	margin-top: -10px;
 	height: 42px;
 }
+
+a {
+	text-decoration: none !important;
+}
+
+.playlist tr {
+	cursor: pointer;
+}

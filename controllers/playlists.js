@@ -217,7 +217,7 @@ exports.getSimilarPlaylists = function(req,res){
 		other_sums=[],
 		diffs=[],
 		i=0,
-		moods =  ["happy","sad"];	
+		moods =  ["happy","sad", "party", "chill", "focus", "workout"];	
 		client.connect();
 		/* async.series() executes all these functions synchronously */
 		async.series([
@@ -305,11 +305,11 @@ exports.getSimilarPlaylists = function(req,res){
 				if(diff<0) diff = diff*(-1);
 				diffs.push(diff);
 				/* and the total */
-				if(mood=="sad"){
+				if(mood=="workout"){
 					// else if it's less, and we've reached the last mood in moods[] ie "sad" for now
 					// then the playlists are similar
 					item.score = _.reduce(diffs, function(memo, num){ return memo + num; }, 0);
-					if (item.score < 25) {
+					if (item.score < 200) {
 						similar_playlists.push(item);
 						console.log("push item"+i+ "for mood"+mood);
 						i++;

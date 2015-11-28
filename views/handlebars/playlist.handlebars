@@ -1,4 +1,4 @@
-<div class="panel panel-default">
+<div class="playlist panel panel-default">
 	<div class="panel-heading">
 		{{name}}
 		{{#editable}}
@@ -19,11 +19,11 @@
 				</thead>
 				<tbody>
 					{{#each songs}}
-						<tr>
-							<td>{{inc @index}}</td>
-							<td>{{this.name}}</td>
-							<td>{{this.artist}}</td>
-						</tr>
+							<tr>
+								<td>{{inc @index}}</td>
+								<td><a href="{{this.youtube}}">{{this.name}}</a></td>
+								<td>{{this.artist}}</td>
+							</tr>
 					{{/each}}
 				</tbody>
 			</table> 

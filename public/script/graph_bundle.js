@@ -12961,7 +12961,8 @@
 		events: {
 			'click .panel-heading': 'collapse',
 			'click .delete': 'deletePlaylist',
-			'click .edit': 'editName'
+			'click .edit': 'editName',
+			'click tr': 'goToYoutube'
 		},
 
 		initialize: function initialize(options) {
@@ -12988,10 +12989,22 @@
 			this.model.editName(newName);
 		},
 
+		goToYoutube: function goToYoutube(ev) {
+			var youtube = $(ev.target).find('a').attr('href');
+			if (youtube) {
+				var win = window.open(youtube, '_blank');
+				win.focus();
+			}
+		},
+
 		render: function render() {
 			var tplData = this.model.toJSON();
 			tplData.editable = this.editable;
 			tplData.encodedName = encodeURI(tplData.name);
+			_lodash2['default'].each(tplData.songs, function (song, i) {
+				tplData.songs[i] = _lodash2['default'].clone(song);
+				tplData.songs[i].youtube = 'http://www.youtube.com/results?search_query=' + song.artist.replace(' ', '+') + '+' + song.name.replace(' ', '+');
+			});
 
 			_handlebarsRuntime2['default'].registerHelper("inc", function (value, options) {
 				return parseInt(value) + 1;
@@ -25393,16 +25406,18 @@
 	},"3":function(container,depth0,helpers,partials,data) {
 	    var alias1=container.escapeExpression, alias2=container.lambda;
 
-	  return "						<tr>\n							<td>"
+	  return "							<tr>\n								<td>"
 	    + alias1((helpers.inc || (depth0 && depth0.inc) || helpers.helperMissing).call(depth0 != null ? depth0 : {},(data && data.index),{"name":"inc","hash":{},"data":data}))
-	    + "</td>\n							<td>"
+	    + "</td>\n								<td><a href=\""
+	    + alias1(alias2((depth0 != null ? depth0.youtube : depth0), depth0))
+	    + "\">"
 	    + alias1(alias2((depth0 != null ? depth0.name : depth0), depth0))
-	    + "</td>\n							<td>"
+	    + "</a></td>\n								<td>"
 	    + alias1(alias2((depth0 != null ? depth0.artist : depth0), depth0))
-	    + "</td>\n						</tr>\n";
+	    + "</td>\n							</tr>\n";
 	},"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
 	    var stack1, helper, options, alias1=depth0 != null ? depth0 : {}, alias2=helpers.helperMissing, alias3="function", buffer = 
-	  "<div class=\"panel panel-default\">\n	<div class=\"panel-heading\">\n		"
+	  "<div class=\"playlist panel panel-default\">\n	<div class=\"panel-heading\">\n		"
 	    + container.escapeExpression(((helper = (helper = helpers.name || (depth0 != null ? depth0.name : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"name","hash":{},"data":data}) : helper)))
 	    + "\n";
 	  stack1 = ((helper = (helper = helpers.editable || (depth0 != null ? depth0.editable : depth0)) != null ? helper : alias2),(options={"name":"editable","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data}),(typeof helper === alias3 ? helper.call(alias1,options) : helper));

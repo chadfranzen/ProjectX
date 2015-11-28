@@ -67,3 +67,10 @@ html, body {
 .panel-heading:hover {
 	text-shadow: 0 0 1px #FFFFFF;
 }
+
+.playlist tr {
+	cursor: pointer;
+}
+a {
+	text-decoration: none !important;
+}

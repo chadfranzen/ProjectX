@@ -8,7 +8,8 @@ var PlaylistView = Backbone.View.extend({
 	events: {
 		'click .panel-heading': 'collapse',
 		'click .delete': 'deletePlaylist',
-		'click .edit': 'editName'
+		'click .edit': 'editName',
+		'click tr': 'goToYoutube'
 	},
 
 	initialize: function(options) {
@@ -35,10 +36,22 @@ var PlaylistView = Backbone.View.extend({
 		this.model.editName(newName);
 	},
 
+	goToYoutube: function(ev) {
+		var youtube = $(ev.target).find('a').attr('href')
+		if (youtube) {
+			var win = window.open(youtube, '_blank');
+  			win.focus();
+		}
+	},
+
 	render: function() {
 		var tplData = this.model.toJSON();
 		tplData.editable = this.editable;
 		tplData.encodedName = encodeURI(tplData.name);
+		_.each(tplData.songs, function(song, i) {
+			tplData.songs[i] = _.clone(song);
+			tplData.songs[i].youtube = 'http://www.youtube.com/results?search_query=' + song.artist.replace(' ', '+') + '+' + song.name.replace(' ', '+');
+		});
 
 		Handlebars.registerHelper("inc", function(value, options)
 		{
