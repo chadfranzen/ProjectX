@@ -55,3 +55,18 @@ a {
 .playlist tr {
 	cursor: pointer;
 }
+
+#back {
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	background-color: #5BC0DE;
+	width: 130px;
+	height: 45px;
+	text-align: center;
+	padding-top: 10px;
+	cursor: pointer;
+}
+#back:hover {
+	background-color: #31B0D5;
+}
