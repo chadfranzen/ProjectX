@@ -66,7 +66,7 @@
 	    link = svg.selectAll(".link"),
 	    node = svg.selectAll(".node");
 
-	var colors = new Rainbow().setSpectrum('green', 'yellow', 'red').setNumberRange(0, 25);
+	var colors = new Rainbow().setSpectrum('green', 'yellow', 'red').setNumberRange(0, 200);
 
 	update();
 	$.get('/playlists/' + rootName).done(function (res) {

@@ -60,7 +60,8 @@ exports.generate=function(req, res){
 
 		res.send({
 			name: '',
-			songs: rows.slice(0, songCount)
+			songs: rows.slice(0, songCount),
+			mood: songMood
 		});
 
 		client.end();
@@ -80,9 +81,10 @@ exports.save=function(req, res){
 		return;
 	}
 
-	playlistName = playlist.name;
-	songs = playlist.songs;
-	username = req.user.username;
+	var playlistName = playlist.name,
+		songs = playlist.songs,
+		mood = playlist.mood,
+		username = req.user.username;
 
 	client.connect();
 	client.query("SELECT * FROM Playlist WHERE name='" + playlist.name + "'", function(err, result){
@@ -99,7 +101,7 @@ exports.save=function(req, res){
 			// It really works I promise
 			return "('" + [song.name, song.artist, playlistName, username].join("', '") + "')";
 		}).join(", ");
-		client.query("INSERT INTO Playlist VALUES ($1, $2)", [playlistName, username]);
+		client.query("INSERT INTO Playlist VALUES ($1, $2, $3)", [playlistName, username, mood]);
 		client.query("INSERT INTO PartOf VALUES " + values, function(err) {
 			client.end();
 			console.log(err);
