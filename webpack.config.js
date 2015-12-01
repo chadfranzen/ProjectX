@@ -2,7 +2,8 @@ module.exports = {
     entry: {
     	index: "./views/backbone/entry_index.js",
     	profile: "./views/backbone/entry_profile.js",
-        graph: "./views/visualization/graph.js"
+        graph: "./views/visualization/graph.js",
+        usergraph: "./views/visualization/usergraph.js"
     },
     output: {
         path: __dirname,

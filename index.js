@@ -80,6 +80,8 @@ app.post('/save', db.save);
 app.post('/delete/:playlistname', db.deletePlaylist);
 app.get('/playlists/:playlistname', db.getSimilarPlaylists);
 
+app.get('/users/:username', db.getSimilarUsers);
+
 app.post('/edit', db.editPlaylistName);
 
 /** FOLLOWING **/
@@ -91,6 +93,9 @@ app.get('/following/:username', auth.getFollowees);
 
 app.get('/graph/:playlistname', function(request, response) {
   response.render('pages/graph');
+});
+app.get('/usergraph/:username', function(request, response) {
+  response.render('pages/usergraph');
 });
 
 app.listen(app.get('port'), function() {

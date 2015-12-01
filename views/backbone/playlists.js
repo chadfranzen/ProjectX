@@ -32,6 +32,10 @@ var PlaylistsView = Backbone.View.extend({
 			subview.render();
 			$container.append(subview.$el);
 		});
+
+		if (!_.isEmpty(this.collection.models)) {
+			$('.similar-users').css('display', 'block');
+		}
 	}
 });
 

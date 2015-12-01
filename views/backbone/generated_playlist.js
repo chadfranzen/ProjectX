@@ -11,7 +11,8 @@ var GeneratedPlaylistView = Backbone.View.extend({
 		var name = prompt('Enter a name for your playlist', 'My New Playlist');
 		this.model.set('name', name);
 		$.post('/save', {playlist: this.model.toJSON()})
-		 .then(() => {window.location.href = '/profile'});
+		 .then(() => {window.location.href = '/profile'})
+		 .fail(() => {alert('Failed to save. Perhaps try a different name?');});
 	},
 	
 	className: 'generated-playlist',

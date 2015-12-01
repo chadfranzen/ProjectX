@@ -26546,6 +26546,8 @@
 			this.model.set('name', name);
 			$.post('/save', { playlist: this.model.toJSON() }).then(function () {
 				window.location.href = '/profile';
+			}).fail(function () {
+				alert('Failed to save. Perhaps try a different name?');
 			});
 		},
 

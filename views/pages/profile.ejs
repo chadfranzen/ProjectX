@@ -9,8 +9,9 @@
 <% include ../partials/nav.ejs %>
 <div class="content">
 	<div id='playlists'>
-	
+		Loading playlists...
 	</div>
+	<div>
 	<div class="user-info panel panel-info">
 	  <div id="username" class="panel-heading">
 	  	<%= username %>
@@ -21,7 +22,12 @@
 			<li class="list-group-item"><span class="badge"><strong><%= following %></strong></span> Following</li>
 	    </ul>
 	  </div>
+	  <a href="/usergraph/<%=username%>" class="similar-users btn btn-primary">
+	  	Find Similar
+	  </a>
 	</div>
+	</div>
+	
 	<span style="display:none" id="currentuser"><%=currentuser%></span>
 </div>
 </body>

@@ -339,3 +339,137 @@ exports.getSimilarPlaylists = function(req,res){
 		if(err) return next(err);
 	});
 };
+
+exports.getSimilarUsers = function(req, res){
+
+	var client = new pg.Client(conString);
+	var username = req.params.username;
+	var givenUserMoods = {
+			name : username,
+			happy : 0,
+			sad : 0,
+			party : 0,
+			chill : 0,
+			focus : 0,
+			workout : 0
+		};
+	var otherUsers = [];
+	var otherUserMoods = [];
+	var results = [];
+	var moods = ["happy","sad","party","chill","focus","workout"];
+	var moodScores = [];
+
+		client.connect();
+		async.series([
+			//check if such a user exists
+			function(callback){
+				client.query("SELECT username FROM users WHERE username='"+username+"'", function(err, result){
+					if(result.rowCount == 0) {
+						console.log("no such user");
+						res.sendStatus(400);
+						client.end();
+						return;
+					}
+				});
+			//if user exists, then get the associated playlist moods for the given user
+				client.query("SELECT mood FROM Playlist WHERE owner='"+username+"'", function(err, result){
+					if(err){
+						client.end();
+						return;
+					}
+
+					if(result.rowCount == 0){
+						console.log("user does no own a playlist");
+						res.sendStatus(400);
+						client.end()
+						return;
+					}
+
+					_.each(result.rows, function(playlist){
+						var emotion = playlist.mood;
+						// console.log(emotion);
+						givenUserMoods[emotion]++;
+					});
+					callback();
+					// console.log(givenUserMoods);
+				});
+			},
+
+			//get all the other users in the database
+			function(callback){
+				client.query("SELECT DISTINCT owner FROM Playlist WHERE owner <> $1", [username], function(err, result){
+					if(err){
+						client.end();
+						return;
+					}
+					_.each(result.rows, function(otherUser){
+						otherUsers.push(otherUser.owner); //could be 0 or more
+					});
+					otherUsers = _.uniq(otherUsers)
+					callback()
+				});
+			},
+
+			//for each user, get their playlist moods, store it in object, push in array
+			//otherUser is a user from the otherUsers array
+			function(callback){
+				_.each(otherUsers, function(otherUser, i){
+					client.query("SELECT mood FROM playlist WHERE owner = $1", [otherUser], function(err, result){
+						if(err){
+							client.end();
+							return;
+						}
+						var otherUserMood = { name: otherUser, happy : 0, sad : 0, party : 0, chill : 0, focus : 0,workout : 0};
+						_.each(result.rows, function(playlist){
+							var emotion = playlist.mood
+							otherUserMood[emotion]++;
+						});
+						otherUserMoods.push(otherUserMood);
+						// We're done getting all the moods if this is the last user in the array
+						if (i == otherUsers.length-1) {
+							callback();
+						}
+					});
+				});
+			},
+
+			//compare given user results with other user results 
+			function(callback){
+				var getSum = function(moodsObj) {
+						var sum = 0;
+						_.each(moods, function(mood) { 
+							sum += moodsObj[mood]; 
+						});
+						return sum;
+					},
+					numGivenUserPlaylists = getSum(givenUserMoods);
+
+				// Adjust mood counts so that they are an average weighted against the total # of playlist
+				_.each(moods, function(mood){
+					givenUserMoods[mood] /= numGivenUserPlaylists;
+				});
+
+				_.each(otherUserMoods, function(userMoods) {
+					var numUserPlaylists = getSum(userMoods),
+						otherUsername = userMoods.name,
+						diffs = {},
+						score;
+
+					// Adjust mood counts so that they are an average weighted against the total # of playlist
+					_.each(moods, function(mood) {
+						userMoods[mood] /= numUserPlaylists;
+						diffs[mood] = Math.abs(userMoods[mood] - givenUserMoods[mood]);
+					});
+
+					// Max diff sum is 6 so this will give us a score out of 100
+					score = Math.floor((getSum(diffs) / 6) * 100);
+					results.push({name: otherUsername, score: score});
+				});
+				// This will randomly select 3 of the 6 most similar users to send back
+				results = _.take(_.shuffle(_.take(_.sortBy(results, 'score'), 6)), 3);
+				res.json(results);
+				client.end();		
+		}], function(err){
+			if(err) return next(err);
+		});
+};

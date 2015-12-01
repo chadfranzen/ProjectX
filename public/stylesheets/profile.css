@@ -61,3 +61,8 @@ a {
 .playlist tr {
 	cursor: pointer;
 }
+
+.similar-users {
+	width: 100%;
+	display: none;
+}

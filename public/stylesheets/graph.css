@@ -40,7 +40,20 @@ line.link {
 	border-left: 3px solid #EBEBEB;
 }
 
-h3 {
+#usersidebar > div {
+	background-color: #2B3E50;
+	width: 320px;
+	padding: 0px 20px;
+	padding-top: 200px;
+	height: 100%;
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	box-sizing: border-box;
+	border-left: 3px solid #EBEBEB;
+}
+
+h3, h4 {
 	text-align: center;
 }
 .btn {
