@@ -77,7 +77,7 @@ User.findOne({where: {username:req.body.username}})
             password: req.body.password,
             followers: 0,
             following: 0
-        }).then(function(){
+        }).then(function(t_user){
             req.logIn(t_user,function(err){
             if (err) return next(err);
             res.redirect('/');
