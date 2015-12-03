@@ -4,7 +4,10 @@
 		{{#editable}}
 		<div class="delete pull-right btn btn-danger">Delete</div>
 		<div class="edit pull-right btn btn-warning">Edit</div>
-		<a href="../graph/{{encodedName}}" class="find-similar pull-right btn btn-primary">Find Similar</a>
+		<a href="../graph/{{username}}/{{encodedName}}" class="find-similar pull-right btn btn-primary">Find Similar</a>
+		{{/editable}}
+		{{^editable}}
+		<a href="../graph/{{username}}/{{encodedName}}" class="find-similar alone pull-right btn btn-primary">Find Similar</a>
 		{{/editable}}
 	</div>
 	<div class="panel-collapse collapse in">

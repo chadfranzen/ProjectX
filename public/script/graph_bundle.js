@@ -55,7 +55,8 @@
 	var width = parseInt(d3.select('body').style('width'), 10),
 	    height = parseInt(d3.select('body').style('height'), 10),
 	    root;
-	var rootName = _.last(window.location.pathname.split('/'));
+	var rootName = _.last(window.location.pathname.split('/')),
+	    username = $('#username').text();
 
 	var force = d3.layout.force().linkDistance(120).charge(-220).gravity(.05).size([width, height]).nodes([{ "name": decodeURI(rootName) }]).on("tick", tick);
 
@@ -66,10 +67,10 @@
 	    link = svg.selectAll(".link"),
 	    node = svg.selectAll(".node");
 
-	var colors = new Rainbow().setSpectrum('green', 'yellow', 'red').setNumberRange(0, 200);
+	var colors = new Rainbow().setSpectrum('green', 'yellow', 'orange').setNumberRange(0, 120);
 
 	update();
-	$.get('/playlists/' + rootName).done(function (res) {
+	$.get('/playlists/' + encodeURI(username) + '/' + rootName).done(function (res) {
 	    _.each(res, function (playlist) {
 	        nodes.push(playlist);
 	        links.push({ source: playlist, target: 0 });
@@ -117,13 +118,12 @@
 	}
 
 	function linkColor(link) {
-	    console.log(colors.colorAt(link.source.score));
 	    return "#" + colors.colorAt(link.source.score);
 	}
 
 	// From http://stackoverflow.com/questions/3426404/create-a-hexadecimal-colour-based-on-a-string-with-javascript
 	function color(d) {
-	    var rand = seedrandom(d.name)() * Math.pow(255, 3);
+	    var rand = seedrandom(d.name + (d.owner || ''))() * Math.pow(255, 3);
 	    for (var i = 0, colour = "#"; i < 3; colour += ("00" + (rand >> i++ * 8 & 0xFF).toString(16)).slice(-2));
 	    return colour;
 	}
@@ -12892,7 +12892,7 @@
 			this.node = options.node;
 			this.graph = options.graph;
 			this.onFetch = options.onFetch;
-			this.fetched = false;
+			this.fetched = !_.isEmpty(_.where(this.graph.links(), { target: this.node }));
 			this.username = this.model.get('songs')[0].owner;
 			this.playlistView = new _backbonePlaylistJs2['default']({ model: this.model });
 			this.render();
@@ -12902,7 +12902,7 @@
 			var name = encodeURI(this.model.get('name')),
 			    self = this;
 
-			$.get('/playlists/' + name).done(function (res) {
+			$.get('/playlists/' + encodeURI(this.username) + '/' + name).done(function (res) {
 				_.each(res, function (child) {
 					self.graph.nodes().push(child);
 					self.graph.links().push({ source: child, target: self.node });
@@ -12968,6 +12968,7 @@
 		initialize: function initialize(options) {
 			// When true, shows delete button
 			this.editable = options.editable;
+			this.username = options.username;
 		},
 
 		collapse: function collapse() {
@@ -13001,6 +13002,7 @@
 			var tplData = this.model.toJSON();
 			tplData.editable = this.editable;
 			tplData.encodedName = encodeURI(tplData.name);
+			tplData.username = encodeURI(this.username);
 			_lodash2['default'].each(tplData.songs, function (song, i) {
 				tplData.songs[i] = _lodash2['default'].clone(song);
 				tplData.songs[i].youtube = 'http://www.youtube.com/results?search_query=' + song.artist.replace(' ', '+') + '+' + song.name.replace(' ', '+');
@@ -25398,12 +25400,22 @@
 
 	var Handlebars = __webpack_require__(10);
 	module.exports = (Handlebars["default"] || Handlebars).template({"1":function(container,depth0,helpers,partials,data) {
-	    var helper;
+	    var helper, alias1=depth0 != null ? depth0 : {}, alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression;
 
 	  return "		<div class=\"delete pull-right btn btn-danger\">Delete</div>\n		<div class=\"edit pull-right btn btn-warning\">Edit</div>\n		<a href=\"../graph/"
-	    + container.escapeExpression(((helper = (helper = helpers.encodedName || (depth0 != null ? depth0.encodedName : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(depth0 != null ? depth0 : {},{"name":"encodedName","hash":{},"data":data}) : helper)))
+	    + alias4(((helper = (helper = helpers.username || (depth0 != null ? depth0.username : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"username","hash":{},"data":data}) : helper)))
+	    + "/"
+	    + alias4(((helper = (helper = helpers.encodedName || (depth0 != null ? depth0.encodedName : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"encodedName","hash":{},"data":data}) : helper)))
 	    + "\" class=\"find-similar pull-right btn btn-primary\">Find Similar</a>\n";
 	},"3":function(container,depth0,helpers,partials,data) {
+	    var helper, alias1=depth0 != null ? depth0 : {}, alias2=helpers.helperMissing, alias3="function", alias4=container.escapeExpression;
+
+	  return "		<a href=\"../graph/"
+	    + alias4(((helper = (helper = helpers.username || (depth0 != null ? depth0.username : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"username","hash":{},"data":data}) : helper)))
+	    + "/"
+	    + alias4(((helper = (helper = helpers.encodedName || (depth0 != null ? depth0.encodedName : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"encodedName","hash":{},"data":data}) : helper)))
+	    + "\" class=\"find-similar alone pull-right btn btn-primary\">Find Similar</a>\n";
+	},"5":function(container,depth0,helpers,partials,data) {
 	    var alias1=container.escapeExpression, alias2=container.lambda;
 
 	  return "							<tr>\n								<td>"
@@ -25416,15 +25428,18 @@
 	    + alias1(alias2((depth0 != null ? depth0.artist : depth0), depth0))
 	    + "</td>\n							</tr>\n";
 	},"compiler":[7,">= 4.0.0"],"main":function(container,depth0,helpers,partials,data) {
-	    var stack1, helper, options, alias1=depth0 != null ? depth0 : {}, alias2=helpers.helperMissing, alias3="function", buffer = 
+	    var stack1, helper, options, alias1=depth0 != null ? depth0 : {}, alias2=helpers.helperMissing, alias3="function", alias4=helpers.blockHelperMissing, buffer = 
 	  "<div class=\"playlist panel panel-default\">\n	<div class=\"panel-heading\">\n		"
 	    + container.escapeExpression(((helper = (helper = helpers.name || (depth0 != null ? depth0.name : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(alias1,{"name":"name","hash":{},"data":data}) : helper)))
 	    + "\n";
 	  stack1 = ((helper = (helper = helpers.editable || (depth0 != null ? depth0.editable : depth0)) != null ? helper : alias2),(options={"name":"editable","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data}),(typeof helper === alias3 ? helper.call(alias1,options) : helper));
-	  if (!helpers.editable) { stack1 = helpers.blockHelperMissing.call(depth0,stack1,options)}
+	  if (!helpers.editable) { stack1 = alias4.call(depth0,stack1,options)}
+	  if (stack1 != null) { buffer += stack1; }
+	  stack1 = ((helper = (helper = helpers.editable || (depth0 != null ? depth0.editable : depth0)) != null ? helper : alias2),(options={"name":"editable","hash":{},"fn":container.noop,"inverse":container.program(3, data, 0),"data":data}),(typeof helper === alias3 ? helper.call(alias1,options) : helper));
+	  if (!helpers.editable) { stack1 = alias4.call(depth0,stack1,options)}
 	  if (stack1 != null) { buffer += stack1; }
 	  return buffer + "	</div>\n	<div class=\"panel-collapse collapse in\">\n		<div class=\"panel-body\">\n			<table class=\"table table-hover \">\n				<thead>\n					<tr>\n				    <th>#</th>\n				    <th>Song</th>\n				    <th>Artist</th>\n			    	</tr>\n				</thead>\n				<tbody>\n"
-	    + ((stack1 = helpers.each.call(alias1,(depth0 != null ? depth0.songs : depth0),{"name":"each","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
+	    + ((stack1 = helpers.each.call(alias1,(depth0 != null ? depth0.songs : depth0),{"name":"each","hash":{},"fn":container.program(5, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")
 	    + "				</tbody>\n			</table> \n		</div>\n	</div>\n</div>\n";
 	},"useData":true});
 

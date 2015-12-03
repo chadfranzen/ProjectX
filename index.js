@@ -78,7 +78,7 @@ app.get('/playlists', db.fetch);
 app.post('/save', db.save);
 
 app.post('/delete/:playlistname', db.deletePlaylist);
-app.get('/playlists/:playlistname', db.getSimilarPlaylists);
+app.get('/playlists/:username/:playlistname', db.getSimilarPlaylists);
 
 app.get('/users/:username', db.getSimilarUsers);
 
@@ -91,8 +91,8 @@ app.get('/following', auth.getFollowees);
 app.get('/following/:username', auth.getFollowees);
 /*****/
 
-app.get('/graph/:playlistname', function(request, response) {
-  response.render('pages/graph');
+app.get('/graph/:username/:playlistname', function(request, response) {
+  response.render('pages/graph', {username: request.params.username});
 });
 app.get('/usergraph/:username', function(request, response) {
   response.render('pages/usergraph');

@@ -7,7 +7,8 @@ var Rainbow = require('rainbowvis.js');
 var width = parseInt(d3.select('body').style('width'), 10),
     height = parseInt(d3.select('body').style('height'), 10),
     root;
-var rootName = _.last(window.location.pathname.split('/'));
+var rootName = _.last(window.location.pathname.split('/')),
+    username = $('#username').text();
 
 var force = d3.layout.force()
     .linkDistance(120)
@@ -26,10 +27,10 @@ var nodes = force.nodes(),
     link = svg.selectAll(".link"),
     node = svg.selectAll(".node");
 
-var colors = new Rainbow().setSpectrum('green', 'yellow', 'red').setNumberRange(0, 200);
+var colors = new Rainbow().setSpectrum('green', 'yellow', 'orange').setNumberRange(0, 120);
 
 update();
-$.get('/playlists/' + rootName).done(function(res){
+$.get('/playlists/' + encodeURI(username) + '/' + rootName).done(function(res){
   _.each(res, function(playlist) {
     nodes.push(playlist);
     links.push({source: playlist, target: 0});
@@ -77,13 +78,12 @@ function tick() {
 }
 
 function linkColor(link) {
-    console.log( colors.colorAt(link.source.score) );
     return "#" + colors.colorAt(link.source.score);
 }
 
 // From http://stackoverflow.com/questions/3426404/create-a-hexadecimal-colour-based-on-a-string-with-javascript
 function color(d) {
-  var rand = seedrandom(d.name)() * Math.pow(255,3);
+  var rand = seedrandom(d.name + (d.owner || ''))() * Math.pow(255,3);
   for (var i = 0, colour = "#"; i < 3; colour += ("00" + ((rand >> i++ * 8) & 0xFF).toString(16)).slice(-2));
   return colour;
 }

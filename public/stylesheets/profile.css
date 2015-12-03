@@ -54,6 +54,10 @@ html, body {
 	height: 42px;
 }
 
+.find-similar.alone {
+	margin-right: -15px !important;
+}
+
 a {
 	text-decoration: none !important;
 }

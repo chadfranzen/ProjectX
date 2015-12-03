@@ -33,7 +33,9 @@ var UserSidebar = Backbone.View.extend({
 	render: function() {
 		this.$el.empty();
 		this.$el.append($('<h3>' + this.username + '</h3>'));
-		this.$el.append($('<h4>You are ' + (100 - this.node.score) + '% similar</h2>'));
+		if (this.node.score) {
+			this.$el.append($('<h4>You are ' + (100 - this.node.score) + '% similar</h2>'));
+		}
 		this.$el.append($('<a href="/profile/' + encodeURI(this.username) + '"><button class="btn btn-info">Visit Profile</button></a>'));
 		if (!this.fetched) {
 			this.$el.append($('<button class="btn btn-primary">Find Similar</button>'));

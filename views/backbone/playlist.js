@@ -15,6 +15,7 @@ var PlaylistView = Backbone.View.extend({
 	initialize: function(options) {
 		// When true, shows delete button
 		this.editable = options.editable;
+		this.username = options.username;
 	},
 
 	collapse: function() {
@@ -48,6 +49,7 @@ var PlaylistView = Backbone.View.extend({
 		var tplData = this.model.toJSON();
 		tplData.editable = this.editable;
 		tplData.encodedName = encodeURI(tplData.name);
+		tplData.username = encodeURI(this.username);
 		_.each(tplData.songs, function(song, i) {
 			tplData.songs[i] = _.clone(song);
 			tplData.songs[i].youtube = 'http://www.youtube.com/results?search_query=' + song.artist.replace(' ', '+') + '+' + song.name.replace(' ', '+');

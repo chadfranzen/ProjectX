@@ -11,7 +11,7 @@ var Sidebar = Backbone.View.extend({
 		this.node = options.node;
 		this.graph = options.graph;
 		this.onFetch = options.onFetch;
-		this.fetched = false;
+		this.fetched = !_.isEmpty(_.where(this.graph.links(), {target: this.node}));
 		this.username = this.model.get('songs')[0].owner;
 		this.playlistView = new PlaylistView({model: this.model});
 		this.render();
@@ -21,7 +21,7 @@ var Sidebar = Backbone.View.extend({
 		var name = encodeURI(this.model.get('name')),
 			self = this;
 
-		$.get('/playlists/' + name).done(function(res) {
+		$.get('/playlists/' + encodeURI(this.username) + '/' + name).done(function(res) {
 			_.each(res, function(child) {
 				self.graph.nodes().push(child);
 				self.graph.links().push({source: child, target: self.node});

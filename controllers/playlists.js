@@ -87,7 +87,7 @@ exports.save=function(req, res){
 		username = req.user.username;
 
 	client.connect();
-	client.query("SELECT * FROM Playlist WHERE name='" + playlist.name + "'", function(err, result){
+	client.query("SELECT * FROM Playlist WHERE name='" + playlist.name.replace("'","''") + "' AND owner='" + username.replace("'","''") + "'", function(err, result){
 		// Check to make sure there's not already a playlist with this name
 		if (err || !_.isEmpty(result.rows)) {
 			client.end();
@@ -99,7 +99,7 @@ exports.save=function(req, res){
 		var values = _.map(songs, function(song) {
 			// Wacky wild string building happens here
 			// It really works I promise
-			return "('" + [song.name, song.artist, playlistName, username].join("', '") + "')";
+			return "('" + [song.name.replace("'","''"), song.artist.replace("'","''"), playlistName.replace("'","''"), username.replace("'","''")].join("', '") + "')";
 		}).join(", ");
 		client.query("INSERT INTO Playlist VALUES ($1, $2, $3)", [playlistName, username, mood]);
 		client.query("INSERT INTO PartOf VALUES " + values, function(err) {
@@ -212,6 +212,7 @@ exports.getSimilarPlaylists = function(req,res){
 
 		var client = new pg.Client(conString);
 		var playlist_name = req.params.playlistname,
+		playlist_owner = req.params.username,
 		playlistNames = [],
 		playlists = [],
 		similar_playlists=[],
@@ -225,7 +226,7 @@ exports.getSimilarPlaylists = function(req,res){
 		async.series([
 		function(callback){
 			/* check if such a playlist exists */
-			client.query("SELECT name FROM playlist WHERE name='"+playlist_name+"'", function(err,result){
+			client.query("SELECT name FROM playlist WHERE name='"+playlist_name.replace("'","''")+"' AND owner='"+playlist_owner+"'", function(err,result){
 				if(result.rowCount==0) {
 					console.log("no such playlist");
 					res.sendStatus(400);
@@ -235,7 +236,7 @@ exports.getSimilarPlaylists = function(req,res){
 			});
 			/* if it exists, then get all it's songs */
 			var curr_playlist = {name: req.params.playlistname}; // we want to find similar playlists to this one
-			client.query("SELECT Playlist.name AS playlistname, songname AS name, artistname AS artist FROM Playlist, PartOf WHERE Playlist.name = $1 AND Playlist.owner=PartOf.playlistowner AND Playlist.name=PartOf.playlistname", [playlist_name], function(err, result) {
+			client.query("SELECT Playlist.name AS playlistname, songname AS name, artistname AS artist FROM Playlist, PartOf WHERE Playlist.name = $1 AND Playlist.owner = $2 AND Playlist.owner=PartOf.playlistowner AND Playlist.name=PartOf.playlistname", [playlist_name, playlist_owner], function(err, result) {
 				if (err) {
 				client.end();
 				return;
@@ -246,13 +247,13 @@ exports.getSimilarPlaylists = function(req,res){
 		},
 		/* get all other playlists in the database, store the names in playlistNames[] */
 		function(callback){
-			client.query("SELECT Playlist.name AS playlistname FROM Playlist WHERE Playlist.name <> $1", [playlist_name], function(err, result) {
+			client.query("SELECT Playlist.name AS playlistname, Playlist.owner AS owner FROM Playlist WHERE Playlist.name <> $1", [playlist_name], function(err, result) {
 				if (err) {
 				client.end();
 				return;
 				}
 				_.each(result.rows, function(item){	
-					playlistNames.push(item.playlistname);
+					playlistNames.push({name: item.playlistname, owner: item.owner});
 				});
 				playlistNames = _.shuffle(playlistNames);
 				callback();
@@ -260,14 +261,14 @@ exports.getSimilarPlaylists = function(req,res){
 		},
 		/* get the songs for each playlist in playlistNames[], and then store in playlists[] */
 		function(callback){
-			client.query("SELECT Playlist.name AS playlistname, Playlist.owner, songname AS name, artistname AS artist FROM Playlist, PartOf WHERE Playlist.name <> $1 AND Playlist.owner=PartOf.playlistowner AND Playlist.name=PartOf.playlistname", [playlist_name], function(err, result) {
+			client.query("SELECT Playlist.name AS playlistname, Playlist.owner AS owner, songname AS name, artistname AS artist FROM Playlist, PartOf WHERE Playlist.name <> $1 AND Playlist.owner=PartOf.playlistowner AND Playlist.name=PartOf.playlistname", [playlist_name], function(err, result) {
 					if (err) {
 						client.end();
 						return;
 					}
-					_.each(playlistNames, function(name) {
-						var playlist = {name: name};
-						playlist.songs = _.where(result.rows, {playlistname: name});
+					_.each(playlistNames, function(playlistInfo) {
+						var playlist = {name: playlistInfo.name, owner: playlistInfo.owner};
+						playlist.songs = _.where(result.rows, {playlistname: playlistInfo.name, owner: playlistInfo.owner});
 						playlists.push(playlist);
 					});
 				callback();				
@@ -276,7 +277,7 @@ exports.getSimilarPlaylists = function(req,res){
 		/* sum up the scores for each song in the playlist. curr_sums will look like ["happy": 375, "sad": 80]*/
 		function(callback){
 			async.forEach(moods, function(mood,callback){
-				client.query("SELECT SUM("+mood+")/COUNT("+mood+") as sum FROM song, partof where song.name=partof.songname and partof.playlistname = $1",[playlist_name], function(err,result){
+				client.query("SELECT SUM("+mood+")/COUNT("+mood+") as sum FROM song, partof where song.name=partof.songname and partof.playlistname = $1 and partof.playlistowner = $2",[playlist_name, playlist_owner], function(err,result){
 					if (err) {							
 						client.end();
 						return;
@@ -296,7 +297,7 @@ exports.getSimilarPlaylists = function(req,res){
 			/* so item is a playlist in playlists[]*/
 			async.each(moods,function(mood){
 			/* for every mood in moods[] we find the sum of the scores of the songs in "item" */
-			client.query("SELECT SUM("+mood+")/COUNT("+mood+") as sum FROM song, partof where song.name=partof.songname and partof.playlistname = $1",[item.name], function(err,result){
+			client.query("SELECT SUM("+mood+")/COUNT("+mood+") as sum FROM song, partof where song.name=partof.songname and partof.playlistname = $1 and partof.playlistowner = $2",[item.name, item.owner], function(err,result){
 				if (err) {							
 				client.end();
 				return;
@@ -311,7 +312,7 @@ exports.getSimilarPlaylists = function(req,res){
 					// else if it's less, and we've reached the last mood in moods[] ie "sad" for now
 					// then the playlists are similar
 					item.score = _.reduce(diffs, function(memo, num){ return memo + num; }, 0);
-					if (item.score < 200) {
+					if (item.score < 80) {
 						similar_playlists.push(item);
 						console.log("push item"+i+ "for mood"+mood);
 						i++;

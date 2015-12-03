@@ -20,7 +20,8 @@ var PlaylistsView = Backbone.View.extend({
 		_.each(this.collection.models, (playlist) => {
 			this.subviews.push(new PlaylistView({
 				model: playlist, 
-				editable: true
+				editable: $('#currentuser').text().trim() === $('#username').text().trim(),
+				username: $('#username').text().trim()
 			}));
 		});
 	},
