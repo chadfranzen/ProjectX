@@ -6,9 +6,9 @@
 		<div class="edit pull-right btn btn-warning">Edit</div>
 		<a href="../graph/{{username}}/{{encodedName}}" class="find-similar pull-right btn btn-primary">Find Similar</a>
 		{{/editable}}
-		{{^editable}}
+		{{#showSimilar}}
 		<a href="../graph/{{username}}/{{encodedName}}" class="find-similar alone pull-right btn btn-primary">Find Similar</a>
-		{{/editable}}
+		{{/showSimilar}}
 	</div>
 	<div class="panel-collapse collapse in">
 		<div class="panel-body">

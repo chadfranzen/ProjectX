@@ -13,7 +13,7 @@ var Sidebar = Backbone.View.extend({
 		this.onFetch = options.onFetch;
 		this.fetched = !_.isEmpty(_.where(this.graph.links(), {target: this.node}));
 		this.username = this.model.get('songs')[0].owner;
-		this.playlistView = new PlaylistView({model: this.model});
+		this.playlistView = new PlaylistView({model: this.model, editable: false});
 		this.render();
 	},
 

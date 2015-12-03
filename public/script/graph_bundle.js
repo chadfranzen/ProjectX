@@ -12894,7 +12894,7 @@
 			this.onFetch = options.onFetch;
 			this.fetched = !_.isEmpty(_.where(this.graph.links(), { target: this.node }));
 			this.username = this.model.get('songs')[0].owner;
-			this.playlistView = new _backbonePlaylistJs2['default']({ model: this.model });
+			this.playlistView = new _backbonePlaylistJs2['default']({ model: this.model, editable: false });
 			this.render();
 		},
 
@@ -13001,6 +13001,7 @@
 		render: function render() {
 			var tplData = this.model.toJSON();
 			tplData.editable = this.editable;
+			tplData.showSimilar = !!($('#currentuser').text() && !tplData.editable);
 			tplData.encodedName = encodeURI(tplData.name);
 			tplData.username = encodeURI(this.username);
 			_lodash2['default'].each(tplData.songs, function (song, i) {
@@ -25435,8 +25436,8 @@
 	  stack1 = ((helper = (helper = helpers.editable || (depth0 != null ? depth0.editable : depth0)) != null ? helper : alias2),(options={"name":"editable","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data}),(typeof helper === alias3 ? helper.call(alias1,options) : helper));
 	  if (!helpers.editable) { stack1 = alias4.call(depth0,stack1,options)}
 	  if (stack1 != null) { buffer += stack1; }
-	  stack1 = ((helper = (helper = helpers.editable || (depth0 != null ? depth0.editable : depth0)) != null ? helper : alias2),(options={"name":"editable","hash":{},"fn":container.noop,"inverse":container.program(3, data, 0),"data":data}),(typeof helper === alias3 ? helper.call(alias1,options) : helper));
-	  if (!helpers.editable) { stack1 = alias4.call(depth0,stack1,options)}
+	  stack1 = ((helper = (helper = helpers.showSimilar || (depth0 != null ? depth0.showSimilar : depth0)) != null ? helper : alias2),(options={"name":"showSimilar","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data}),(typeof helper === alias3 ? helper.call(alias1,options) : helper));
+	  if (!helpers.showSimilar) { stack1 = alias4.call(depth0,stack1,options)}
 	  if (stack1 != null) { buffer += stack1; }
 	  return buffer + "	</div>\n	<div class=\"panel-collapse collapse in\">\n		<div class=\"panel-body\">\n			<table class=\"table table-hover \">\n				<thead>\n					<tr>\n				    <th>#</th>\n				    <th>Song</th>\n				    <th>Artist</th>\n			    	</tr>\n				</thead>\n				<tbody>\n"
 	    + ((stack1 = helpers.each.call(alias1,(depth0 != null ? depth0.songs : depth0),{"name":"each","hash":{},"fn":container.program(5, data, 0),"inverse":container.noop,"data":data})) != null ? stack1 : "")

@@ -48,6 +48,7 @@ var PlaylistView = Backbone.View.extend({
 	render: function() {
 		var tplData = this.model.toJSON();
 		tplData.editable = this.editable;
+		tplData.showSimilar = !!($('#currentuser').text() && !tplData.editable);
 		tplData.encodedName = encodeURI(tplData.name);
 		tplData.username = encodeURI(this.username);
 		_.each(tplData.songs, function(song, i) {
